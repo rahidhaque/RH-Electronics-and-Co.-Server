@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -38,6 +38,8 @@ async function run(req, res, next) {
     try {
         await client.connect();
         const userCollection = client.db("rh_electronics").collection("users");
+        const productCollection = client.db("rh_electronics").collection("products");
+        const purchaseCollection = client.db('rh_electronics').collection("purchases");
 
         //adding or updating user
         app.put('/user/:email', async (req, res) => {
@@ -51,6 +53,29 @@ async function run(req, res, next) {
             const result = await userCollection.updateOne(filter, updateDoc, options);
             var token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
             res.send({ result, token });
+        })
+
+        //getting the products 
+        app.get('/product', async (req, res) => {
+            const query = {};
+            const cursor = productCollection.find(query);
+            const products = await cursor.toArray();
+            res.send(products);
+        })
+
+        //get single product
+        app.get('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const product = await productCollection.findOne(query);
+            res.send(product);
+        })
+
+        //purchase post
+        app.post('/purchase', async (req, res) => {
+            const purchase = req.body;
+            const result = await purchaseCollection.insertOne(purchase);
+            res.send(result);
         })
 
     }
