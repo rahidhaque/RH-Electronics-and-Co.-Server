@@ -42,6 +42,15 @@ async function run(req, res, next) {
         //adding or updating user
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            var token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
+            res.send({ result, token });
         })
 
     }
