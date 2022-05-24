@@ -86,6 +86,7 @@ async function run(req, res, next) {
             res.send(result);
         })
 
+
         //purchase details of a single user
         app.get('/purchase/:email', async (req, res) => {
             const email = req.params.email;
@@ -93,6 +94,14 @@ async function run(req, res, next) {
             const cursor = purchaseCollection.find(query);
             const purchases = await cursor.toArray();
             res.send(purchases);
+        })
+
+        //pay purchased product
+        app.get('/purchase/:email/:id', async (req, res) => {
+            const id = req.params;
+            const query = { _id: ObjectId(id) };
+            const purchase = await purchaseCollection.findOne(query);
+            res.send(purchase);
         })
 
         //Cancel Order API
@@ -103,13 +112,7 @@ async function run(req, res, next) {
             res.send(result);
         })
 
-        //pay purchased product
-        app.get('/booking/:id', async (req, res) => {
-            const id = req.params;
-            const query = { _id: ObjectId(id) };
-            const purchase = await purchaseCollection.findOne(query);
-            res.send(purchase);
-        })
+
 
 
     }
