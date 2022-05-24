@@ -55,6 +55,14 @@ async function run(req, res, next) {
             res.send({ result, token });
         })
 
+        //getting info of single user
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            res.send(user);
+        })
+
         //getting the products 
         app.get('/product', async (req, res) => {
             const query = {};
@@ -77,6 +85,8 @@ async function run(req, res, next) {
             const result = await purchaseCollection.insertOne(purchase);
             res.send(result);
         })
+
+
 
     }
     finally {
