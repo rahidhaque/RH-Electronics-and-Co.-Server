@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, ObjectID } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -101,6 +101,14 @@ async function run(req, res, next) {
             const filter = { email: email };
             const result = await purchaseCollection.deleteOne(filter);
             res.send(result);
+        })
+
+        //pay purchased product
+        app.get('/booking/:id', async (req, res) => {
+            const id = req.params;
+            const query = { _id: ObjectId(id) };
+            const purchase = await purchaseCollection.findOne(query);
+            res.send(purchase);
         })
 
 
