@@ -75,7 +75,7 @@ async function run(req, res, next) {
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const cursor = await productCollection.find(query);
+            const product = await productCollection.findOne(query);
             res.send(product);
         })
 
@@ -93,6 +93,14 @@ async function run(req, res, next) {
             const cursor = purchaseCollection.find(query);
             const purchases = await cursor.toArray();
             res.send(purchases);
+        })
+
+        //Cancel Order API
+        app.delete('/purchase/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const result = await purchaseCollection.deleteOne(filter);
+            res.send(result);
         })
 
 
