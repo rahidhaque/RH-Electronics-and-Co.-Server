@@ -3,6 +3,9 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId, ObjectID } = require('mongodb');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -20,14 +23,13 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-        return res.status(401).send({ message: 'Unauthorized Access' });
+        return res.status(401).send({ message: 'Unauthorized access' });
     }
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
         if (err) {
-            return res.status(403).send({ message: 'Forbidden Access' });
+            return res.status(403).send({ message: 'Forbidden access' })
         }
-
         req.decoded = decoded;
         next();
     });
@@ -40,6 +42,21 @@ async function run(req, res, next) {
         const userCollection = client.db("rh_electronics").collection("users");
         const productCollection = client.db("rh_electronics").collection("products");
         const purchaseCollection = client.db('rh_electronics').collection("purchases");
+        const paymentCollection = client.db("rh_electronics").collection("payments");
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const product = req.body;
+            const price = product.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card']
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        })
 
         //adding or updating user
         app.put('/user/:email', async (req, res) => {
@@ -56,7 +73,7 @@ async function run(req, res, next) {
         })
 
         //getting info of single user
-        app.get('/user/:email', async (req, res) => {
+        app.get('/user/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const user = await userCollection.findOne(query);
@@ -80,7 +97,7 @@ async function run(req, res, next) {
         })
 
         //purchase post
-        app.post('/purchase', async (req, res) => {
+        app.post('/purchase', verifyJWT, async (req, res) => {
             const purchase = req.body;
             const result = await purchaseCollection.insertOne(purchase);
             res.send(result);
@@ -88,7 +105,7 @@ async function run(req, res, next) {
 
 
         //purchase details of a single user
-        app.get('/purchase/:email', async (req, res) => {
+        app.get('/purchase/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const cursor = purchaseCollection.find(query);
@@ -96,12 +113,30 @@ async function run(req, res, next) {
             res.send(purchases);
         })
 
-        //pay purchased product
-        app.get('/purchase/:email/:id', async (req, res) => {
+        //get information of a single purchased product
+        app.get('/purchase/:email/:id', verifyJWT, async (req, res) => {
             const id = req.params;
-            const query = { _id: ObjectId(id) };
+            const email = req.params.email;
+            const query = { _id: ObjectId(id), email: email };
             const purchase = await purchaseCollection.findOne(query);
             res.send(purchase);
+        })
+
+        //pay  product
+        app.patch('/purchase/:email/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const email = req.params.email;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id), email: email };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId,
+                }
+            }
+            const result = await paymentCollection.insertOne(payment);
+            const updatePurchase = await purchaseCollection.updateOne(filter, updatedDoc);
+            res.send(updatePurchase);
         })
 
         //Cancel Order API
@@ -111,7 +146,6 @@ async function run(req, res, next) {
             const result = await purchaseCollection.deleteOne(filter);
             res.send(result);
         })
-
 
 
 
