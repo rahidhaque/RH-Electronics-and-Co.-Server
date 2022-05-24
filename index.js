@@ -75,7 +75,7 @@ async function run(req, res, next) {
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const product = await productCollection.findOne(query);
+            const cursor = await productCollection.find(query);
             res.send(product);
         })
 
@@ -86,6 +86,14 @@ async function run(req, res, next) {
             res.send(result);
         })
 
+        //purchase details of a single user
+        app.get('/purchase/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const cursor = purchaseCollection.find(query);
+            const purchases = await cursor.toArray();
+            res.send(purchases);
+        })
 
 
     }
