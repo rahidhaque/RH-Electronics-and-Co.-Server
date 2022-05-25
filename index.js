@@ -44,6 +44,17 @@ async function run(req, res, next) {
         const purchaseCollection = client.db('rh_electronics').collection("purchases");
         const paymentCollection = client.db("rh_electronics").collection("payments");
 
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                next();
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden' });
+            }
+        }
+
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const product = req.body;
             const price = product.price;
@@ -87,6 +98,15 @@ async function run(req, res, next) {
             const user = await userCollection.findOne(query);
             res.send(user);
         })
+
+        //getting admin users
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
+        })
+
 
         //getting the products 
         app.get('/product', async (req, res) => {
