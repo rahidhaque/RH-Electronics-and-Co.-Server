@@ -72,6 +72,14 @@ async function run(req, res, next) {
             res.send({ result, token });
         })
 
+        //getting info of all user
+        app.get('/user', verifyJWT, async (req, res) => {
+            const query = {};
+            const cursor = userCollection.find(query);
+            const users = await cursor.toArray();
+            res.send(users);
+        })
+
         //getting info of single user
         app.get('/user/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
