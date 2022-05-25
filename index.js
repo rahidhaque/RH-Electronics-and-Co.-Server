@@ -151,6 +151,12 @@ async function run(req, res, next) {
             res.send(result);
         })
 
+        //total Products
+        app.get('/productCount', async (req, res) => {
+            const count = await productCollection.estimatedDocumentCount();
+            res.send({ count });
+        })
+
         //purchase post
         app.post('/purchase', verifyJWT, async (req, res) => {
             const purchase = req.body;
