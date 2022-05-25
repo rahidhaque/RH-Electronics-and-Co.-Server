@@ -107,6 +107,17 @@ async function run(req, res, next) {
             res.send({ admin: isAdmin })
         })
 
+        //giving user the role of admin
+        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
 
         //getting the products 
         app.get('/product', async (req, res) => {
