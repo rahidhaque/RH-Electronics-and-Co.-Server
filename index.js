@@ -43,6 +43,7 @@ async function run(req, res, next) {
         const productCollection = client.db("rh_electronics").collection("products");
         const purchaseCollection = client.db('rh_electronics').collection("purchases");
         const paymentCollection = client.db("rh_electronics").collection("payments");
+        const reviewCollection = client.db("rh_electronics").collection("reviews");
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
@@ -220,6 +221,13 @@ async function run(req, res, next) {
             }
             const updatePurchase = await purchaseCollection.updateOne(filter, updatedDoc);
             res.send(updatePurchase);
+        })
+
+        //add review
+        app.post('/review', verifyJWT, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
         })
 
 
