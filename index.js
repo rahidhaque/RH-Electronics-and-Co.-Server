@@ -168,6 +168,14 @@ async function run(req, res, next) {
             res.send(purchases);
         })
 
+        //purchase details of all users
+        app.get('/purchase', verifyJWT, verifyAdmin, async (req, res) => {
+            const query = {};
+            const cursor = purchaseCollection.find(query);
+            const purchases = await cursor.toArray();
+            res.send(purchases);
+        })
+
         //get information of a single purchased product
         app.get('/purchase/:email/:id', verifyJWT, async (req, res) => {
             const id = req.params;
@@ -193,6 +201,8 @@ async function run(req, res, next) {
             const updatePurchase = await purchaseCollection.updateOne(filter, updatedDoc);
             res.send(updatePurchase);
         })
+
+
 
         //Cancel Order API
         app.delete('/purchase/:email', async (req, res) => {
