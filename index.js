@@ -119,6 +119,14 @@ async function run(req, res, next) {
         })
 
 
+        //Posting the products
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
+        })
+
+
         //getting the products 
         app.get('/product', async (req, res) => {
             const query = {};
