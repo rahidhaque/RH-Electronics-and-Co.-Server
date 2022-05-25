@@ -224,10 +224,19 @@ async function run(req, res, next) {
         })
 
         //add review
-        app.post('/review', verifyJWT, async (req, res) => {
+        app.post('/review', async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review);
             res.send(result);
+        })
+
+
+        //getting all the review
+        app.get('/review', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
         })
 
 
