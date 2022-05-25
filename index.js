@@ -202,6 +202,20 @@ async function run(req, res, next) {
             res.send(updatePurchase);
         })
 
+        //ship  product
+        app.patch('/purchase/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    shipped: true
+                }
+            }
+            const updatePurchase = await purchaseCollection.updateOne(filter, updatedDoc);
+            res.send(updatePurchase);
+        })
+
 
 
         //Cancel Order API
