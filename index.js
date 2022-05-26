@@ -233,8 +233,7 @@ async function run(req, res, next) {
 
         //getting all the review
         app.get('/review', async (req, res) => {
-            const query = {};
-            const cursor = reviewCollection.find(query);
+            const cursor = reviewCollection.find().sort({ $natural: -1 });
             const reviews = await cursor.toArray();
             res.send(reviews);
         })
